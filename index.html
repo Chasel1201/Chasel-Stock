@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>籌碼觀測站 — 台指選擇權</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #05060c;
+    --panel: #0b0f1c;
+    --panel-line: #1c2740;
+    --cyan: #5fe3ff;
+    --cyan-dim: #2a5a6e;
+    --amber: #ffb454;
+    --up: #ff5f7a;
+    --down: #3ddc97;
+    --text: #d8e4f2;
+    --text-dim: #6d7c96;
+    --display: 'Orbitron', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--void);
+    color: var(--text);
+    font-family: var(--mono);
+    padding: 40px 20px 70px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  #stars {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; position: relative; }
+  header {
+    text-align: center;
+    margin-bottom: 34px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--cyan-dim);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 30px;
+    margin: 0 0 8px;
+    color: var(--cyan);
+    text-shadow: 0 0 18px rgba(95,227,255,0.35);
+    letter-spacing: 1px;
+  }
+  .sub { color: var(--text-dim); font-size: 13px; }
+  .statusbar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 20px 0 36px;
+    padding: 12px 20px;
+    border: 1px solid var(--panel-line);
+    border-radius: 4px;
+    background: var(--panel);
+    font-size: 12px;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+  }
+  .statusbar b { color: var(--cyan); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .panel {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 22px;
+  }
+  .panel::before, .panel::after {
+    content: "";
+    position: absolute;
+    width: 14px; height: 14px;
+    border-color: var(--cyan-dim);
+    border-style: solid;
+    opacity: 0.7;
+  }
+  .panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .panel::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .panel-title {
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .panel-title .date { color: var(--cyan-dim); font-family: var(--mono); }
+  .gauge-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+  .readout {
+    font-family: var(--display);
+    font-size: 30px;
+    text-align: center;
+    margin: 4px 0;
+  }
+  .readout.bullish { color: var(--up); text-shadow: 0 0 14px rgba(255,95,122,0.4); }
+  .readout.bearish { color: var(--down); text-shadow: 0 0 14px rgba(61,220,151,0.4); }
+  .readout.neutral { color: var(--amber); text-shadow: 0 0 14px rgba(255,180,84,0.35); }
+  .readout-label { text-align: center; font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 14px; }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--panel-line);
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-row .label { color: var(--text-dim); }
+  .note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    border-left: 2px solid var(--cyan-dim);
+    padding-left: 10px;
+  }
+  .bar-compare { margin: 12px 0; }
+  .bar-compare .bar-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .bar-track { height: 8px; background: #131b2e; border-radius: 4px; overflow: hidden; display: flex; }
+  .bar-fill-up { background: var(--up); height: 100%; }
+  .bar-fill-down { background: var(--down); height: 100%; }
+  .hint-panel {
+    text-align: center;
+    padding: 20px;
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    background: var(--panel);
+    font-size: 13px;
+    color: var(--cyan);
+    margin-bottom: 18px;
+  }
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-top: 30px;
+    border-top: 1px solid var(--panel-line);
+    padding-top: 20px;
+  }
+  .err { color: var(--up); font-size: 13px; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TAIEX OPTIONS · CHIP OBSERVATORY</div>
+    <h1>籌碼觀測站</h1>
+    <div class="sub">台指選擇權籌碼動向 · 週三選 / 週五選 / 月選</div>
+  </header>
+
+  <div class="statusbar" id="statusbar">載入中…</div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="hint-panel" id="hint"></div>
+
+  <footer>
+    資料來源：臺灣期貨交易所 Open API，由 GitHub Actions 排程於每個交易日更新一次。<br>
+    本頁僅整理公開籌碼資料，判讀為規則化的方向偏向說明，不構成進出場訊號或投資建議。
+  </footer>
+</div>
+
+<script>
+// 星空背景 — 一次性生成，緩慢閃爍
+(function initStars() {
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  const stars = Array.from({ length: 160 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.3 + 0.3,
+    phase: Math.random() * Math.PI * 2,
+  }));
+  function draw(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#5fe3ff';
+    stars.forEach(s => {
+      const alpha = 0.3 + 0.4 * Math.sin(t / 1400 + s.phase);
+      ctx.globalAlpha = Math.max(0.1, alpha);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+function biasClass(bias) {
+  return bias === 'bullish' ? 'bullish' : bias === 'bearish' ? 'bearish' : 'neutral';
+}
+function biasLabel(bias) {
+  return bias === 'bullish' ? '偏多 BULLISH' : bias === 'bearish' ? '偏空 BEARISH' : '中性 NEUTRAL';
+}
+
+async function loadData() {
+  const grid = document.getElementById('grid');
+  const statusbar = document.getElementById('statusbar');
+  const hint = document.getElementById('hint');
+  try {
+    const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('data.json 讀取失敗：' + res.status);
+    const data = await res.json();
+
+    statusbar.innerHTML = `資料更新時間 <b>${data.generated_at}</b>　·　由 GitHub Actions 自動排程抓取`;
+    hint.textContent = data.weekly_hint || '';
+
+    let html = '';
+
+    // 一、Put/Call 比率
+    const pcr = data.put_call_ratio;
+    if (pcr && pcr.status === 'ok') {
+      html += `
+        <div class="panel">
+          <div class="panel-title"><span>PUT / CALL RATIO</span><span class="date">${pcr.date}</span></div>
+          <div class="readout ${biasClass(pcr.bias)}">${pcr.oi_ratio.toFixed(1)}%</div>
+          <div class="readout-label">${biasLabel(pcr.bias)}</div>
+          <div class="metric-row"><span class="label">未平倉量比率</span><span>${pcr.oi_ratio.toFixed(2)}%</span></div>
+          <div class="metric-row"><span class="label">成交量比率</span><span>${pcr.vol_ratio.toFixed(2)}%</span></div>
+          <div class="note">${pcr.note}</div>
+        </div>`;
+    } else {
+      html += `<div class="panel"><div class="panel-title">PUT / CALL RATIO</div><div class="err">${(pcr && pcr.message) || '資料異常'}</div></div>`;
+    }
+
+    // 二、三大法人
+    const inst = data.institutional;
+    if (inst && inst.status === 'ok') {
+      const maxAbs = Math.max(Math.abs(inst.call_net), Math.abs(inst.put_net), 1);
+      html += `
+        <div class="panel">
+          <div class="panel-title"><span>INSTITUTIONAL FLOW</span><span class="date">${inst.date}</span></div>
+          <div class="readout ${biasClass(inst.bias)}" style="font-size:20px;">${biasLabel(inst.bias)}</div>
+          <div class="bar-compare">
+            <div class="bar-label"><span>買權未平倉淨額</span><span>${inst.call_net.toFixed(0)}</span></div>
+            <div class="bar-track"><div class="${inst.call_net >= 0 ? 'bar-fill-up' : 'bar-fill-down'}" style="width:${Math.min(100, Math.abs(inst.call_net) / maxAbs * 100)}%"></div></div>
+          </div>
+          <div class="bar-compare">
+            <div class="bar-label"><span>賣權未平倉淨額</span><span>${inst.put_net.toFixed(0)}</span></div>
+            <div class="bar-track"><div class="${inst.put_net >= 0 ? 'bar-fill-up' : 'bar-fill-down'}" style="width:${Math.min(100, Math.abs(inst.put_net) / maxAbs * 100)}%"></div></div>
+          </div>
+          <div class="note">${inst.note}</div>
+        </div>`;
+    } else {
+      html += `<div class="panel"><div class="panel-title">INSTITUTIONAL FLOW</div><div class="err">${(inst && inst.message) || '資料異常'}</div></div>`;
+    }
+
+    // 三、大額交易人
+    const large = data.large_traders;
+    if (large && large.status === 'ok') {
+      const maxAbs = Math.max(Math.abs(large.call_skew), Math.abs(large.put_skew), 1);
+      html += `
+        <div class="panel">
+          <div class="panel-title"><span>LARGE TRADERS (TOP 10)</span><span class="date">${large.date}</span></div>
+          <div class="readout ${biasClass(large.bias)}" style="font-size:20px;">${biasLabel(large.bias)}</div>
+          <div class="bar-compare">
+            <div class="bar-label"><span>買權 買方－賣方</span><span>${large.call_skew.toFixed(0)}</span></div>
+            <div class="bar-track"><div class="${large.call_skew >= 0 ? 'bar-fill-up' : 'bar-fill-down'}" style="width:${Math.min(100, Math.abs(large.call_skew) / maxAbs * 100)}%"></div></div>
+          </div>
+          <div class="bar-compare">
+            <div class="bar-label"><span>賣權 買方－賣方</span><span>${large.put_skew.toFixed(0)}</span></div>
+            <div class="bar-track"><div class="${large.put_skew >= 0 ? 'bar-fill-up' : 'bar-fill-down'}" style="width:${Math.min(100, Math.abs(large.put_skew) / maxAbs * 100)}%"></div></div>
+          </div>
+          <div class="note">${large.note}<br>${large.coverage_note || ''}</div>
+        </div>`;
+    } else {
+      html += `<div class="panel"><div class="panel-title">LARGE TRADERS (TOP 10)</div><div class="err">${(large && large.message) || '資料異常'}</div></div>`;
+    }
+
+    grid.innerHTML = html;
+  } catch (e) {
+    statusbar.innerHTML = '';
+    grid.innerHTML = `<div class="panel"><div class="err">讀取 data.json 失敗：${e.message}<br>請確認 GitHub Actions 是否已成功執行過一次、data.json 是否已存在於repo根目錄。</div></div>`;
+  }
+}
+loadData();
+</script>
+</body>
+</html>
