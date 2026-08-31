@@ -21,6 +21,18 @@
     --display: 'Orbitron', sans-serif;
     --mono: 'Space Mono', monospace;
   }
+  html[data-theme="light"] {
+    --void: #eef1f8;
+    --panel: #ffffff;
+    --panel-line: #c9d3e6;
+    --cyan: #0e7c93;
+    --cyan-dim: #7fa8b4;
+    --amber: #b3720a;
+    --up: #d1304a;
+    --down: #1f9e6b;
+    --text: #16233c;
+    --text-dim: #5c6b85;
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -30,12 +42,15 @@
     padding: 40px 20px 70px;
     position: relative;
     overflow-x: hidden;
+    transition: background 0.25s ease, color 0.25s ease;
   }
   #stars {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: -1;
+    transition: opacity 0.25s ease;
   }
+  html[data-theme="light"] #stars { opacity: 0.15; }
   .wrap { max-width: 860px; margin: 0 auto; position: relative; }
   header {
     text-align: center;
@@ -157,11 +172,42 @@
     padding-top: 20px;
   }
   .err { color: var(--up); font-size: 13px; text-align: center; padding: 20px; }
+  .disclaimer-banner {
+    max-width: 860px;
+    margin: 0 auto 24px;
+    padding: 12px 18px;
+    border: 1px solid var(--amber);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--amber) 12%, transparent);
+    color: var(--amber);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.7;
+  }
+  .theme-toggle {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 10;
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: var(--cyan-dim); }
 </style>
 </head>
 <body>
 <canvas id="stars"></canvas>
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌗 深色/淺色</button>
 <div class="wrap">
+  <div class="disclaimer-banner">
+    ⚠ 此為 vibe coding 練習作品，無任何商用用途。籌碼資料僅供研究參考，不構成投資建議。
+  </div>
   <header>
     <div class="eyebrow">TAIEX OPTIONS · CHIP OBSERVATORY</div>
     <h1>籌碼觀測站</h1>
@@ -181,6 +227,18 @@
 </div>
 
 <script>
+// 深色/淺色模式切換，記住使用者上次的選擇
+(function initTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+}
+
 // 星空背景 — 一次性生成，緩慢閃爍
 (function initStars() {
   const canvas = document.getElementById('stars');
