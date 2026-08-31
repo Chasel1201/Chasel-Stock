@@ -1,0 +1,31 @@
+name: Update options chip data
+
+on:
+  schedule:
+    # 每個交易日台灣時間下午2點半跑一次（UTC 06:30 = 台北 14:30）
+    - cron: '30 6 * * 1-5'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 抓取最新籌碼資料
+        run: python fetch_data.py
+
+      - name: 提交更新後的 data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --quiet --cached || git commit -m "自動更新籌碼資料 $(date -u +%Y-%m-%d)"
+          git push
