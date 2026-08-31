@@ -215,6 +215,9 @@
   </header>
 
   <div class="statusbar" id="statusbar">載入中…</div>
+  <div style="text-align:center; margin-bottom: 30px;">
+    <button class="theme-toggle" id="refreshBtn" style="position:static; display:inline-block;" onclick="loadData()">🔄 手動重新讀取</button>
+  </div>
 
   <div class="grid" id="grid"></div>
 
@@ -282,6 +285,8 @@ async function loadData() {
   const grid = document.getElementById('grid');
   const statusbar = document.getElementById('statusbar');
   const hint = document.getElementById('hint');
+  const btn = document.getElementById('refreshBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '讀取中…'; }
   try {
     const res = await fetch('./data.json', { cache: 'no-store' });
     if (!res.ok) throw new Error('data.json 讀取失敗：' + res.status);
@@ -356,6 +361,8 @@ async function loadData() {
   } catch (e) {
     statusbar.innerHTML = '';
     grid.innerHTML = `<div class="panel"><div class="err">讀取 data.json 失敗：${e.message}<br>請確認 GitHub Actions 是否已成功執行過一次、data.json 是否已存在於repo根目錄。</div></div>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 手動重新讀取'; }
   }
 }
 loadData();
