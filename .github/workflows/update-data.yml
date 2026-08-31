@@ -2,8 +2,8 @@ name: Update options chip data
 
 on:
   schedule:
-    # 每個交易日台灣時間下午2點半跑一次（UTC 06:30 = 台北 14:30）
-    - cron: '30 6 * * 1-5'
+    # 台股收盤後，台北時間下午3點自動跑一次（UTC 07:00 = 台北 15:00）
+    - cron: '0 7 * * 1-5'
   workflow_dispatch: {}
 
 permissions:
