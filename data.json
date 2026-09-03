@@ -1,29 +1,24 @@
 {
-  "generated_at": "2026-09-02 15:12:32",
-  "weekly_hint": "今日為週三選結算日，收盤後可轉往下週週三選，留意今晚夜盤是否需加開週五選",
+  "generated_at": "2026-09-03 15:13:28",
+  "weekly_hint": "今晚為全週夜盤成交量最高時段，建議優先評估週五選因應",
   "put_call_ratio": {
     "status": "ok",
-    "date": "20260901",
-    "oi_ratio": 110.04,
-    "vol_ratio": 111.61,
-    "bias": "bearish",
-    "note": "偏悲觀（賣權未平倉相對偏多）"
+    "date": "20260902",
+    "oi_ratio": 83.9,
+    "vol_ratio": 85.45,
+    "bias": "neutral",
+    "note": "中性，無明顯籌碼傾向"
   },
   "institutional": {
     "status": "ok",
-    "date": "20260901",
-    "call_net": 303.0,
-    "put_net": -2064.0,
-    "bias": "bullish",
-    "note": "三大法人籌碼偏多方"
+    "date": "20260902",
+    "call_net": -408.0,
+    "put_net": 488.0,
+    "bias": "bearish",
+    "note": "三大法人籌碼偏空方"
   },
   "large_traders": {
-    "status": "ok",
-    "date": "20260901",
-    "call_skew": -24271.0,
-    "put_skew": 9654.0,
-    "bias": "bearish",
-    "note": "十大交易人籌碼偏空",
-    "coverage_note": "此數字加總臺指選擇權所有到期別（週選+月選），非單獨本週選"
+    "status": "error",
+    "message": "Expecting value: line 1 column 1 (char 0)"
   }
 }
