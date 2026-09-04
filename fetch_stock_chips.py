@@ -41,6 +41,7 @@ def fetch_json(url):
 def build_concentration():
     """回傳 {股票代號: {"name":None,"concentration_pct":..., "date":...}}"""
     text = fetch_text("https://opendata.tdcc.com.tw/getOD.ashx?id=1-5")
+    text = text.lstrip("\ufeff")  # TDCC的CSV檔頭帶BOM字元，不移除會導致第一欄位名稱比對失敗
     reader = csv.DictReader(io.StringIO(text))
 
     per_stock = {}  # code -> {15: shares, 16: shares, 17: total}
