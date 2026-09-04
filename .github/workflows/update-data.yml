@@ -2,30 +2,50 @@ name: Update options chip data
 
 on:
   schedule:
-    # 台股收盤後，台北時間下午3點自動跑一次（UTC 07:00 = 台北 15:00）
+    # 選擇權籌碼：台北時間下午3點（UTC 07:00），這是你先前指定的時間
     - cron: '0 7 * * 1-5'
+    # 個股籌碼（大戶/外資持股比）：台北時間下午4點半（UTC 08:30），外資持股比公布較晚
+    - cron: '30 8 * * 1-5'
   workflow_dispatch: {}
 
 permissions:
   contents: write
 
 jobs:
-  update-data:
+  update-options-data:
     runs-on: ubuntu-latest
+    if: github.event.schedule == '0 7 * * 1-5' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: 抓取最新籌碼資料
+      - name: 抓取選擇權籌碼資料
         run: python fetch_data.py
-
-      - name: 提交更新後的 data.json
+      - name: 提交 data.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git diff --quiet --cached || git commit -m "自動更新籌碼資料 $(date -u +%Y-%m-%d)"
+          git diff --quiet --cached || git commit -m "自動更新選擇權籌碼資料 $(date -u +%Y-%m-%d)"
+          git pull --rebase
+          git push
+
+  update-stock-chips:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '30 8 * * 1-5' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 抓取個股籌碼資料（大戶持股比／外資持股比）
+        run: python fetch_stock_chips.py
+      - name: 提交 stocks.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stocks.json
+          git diff --quiet --cached || git commit -m "自動更新個股籌碼資料 $(date -u +%Y-%m-%d)"
+          git pull --rebase
           git push
