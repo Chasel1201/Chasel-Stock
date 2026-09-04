@@ -224,8 +224,17 @@
 
   <div class="hint-panel" id="hint"></div>
 
+  <div class="panel" id="stockSearchPanel">
+    <div class="panel-title"><span>個股籌碼查詢</span><span class="date" id="stockDataDate"></span></div>
+    <input id="stockInput" type="text" placeholder="輸入股票代號或名稱，例如 2330 或 台積電"
+      style="width:100%; padding:10px; background:#0d1420; border:1px solid var(--panel-line); color:var(--text); font-family:var(--mono); font-size:14px; border-radius:4px; box-sizing:border-box;">
+    <div id="stockResult" style="margin-top:14px;"></div>
+  </div>
+
   <footer>
-    資料來源：臺灣期貨交易所 Open API，由 GitHub Actions 排程於每個交易日更新一次。<br>
+    資料來源：臺灣期貨交易所（選擇權籌碼）、臺灣集中保管結算所（大戶持股比）、
+    臺灣證券交易所（外資持股比），由 GitHub Actions 排程自動更新。<br>
+    「籌碼集中度」為本站自訂的計算方式（持股級距15、16股數合計÷總股數），非官方定義的「大戶」名詞，僅供參考。<br>
     本頁僅整理公開籌碼資料，判讀為規則化的方向偏向說明，不構成進出場訊號或投資建議。
   </footer>
 </div>
@@ -367,6 +376,50 @@ async function loadData() {
   }
 }
 loadData();
+
+// ---------- 個股籌碼查詢 ----------
+let stocksData = null;
+async function loadStocksData() {
+  try {
+    const res = await fetch('./stocks.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('stocks.json 讀取失敗：' + res.status);
+    stocksData = await res.json();
+    document.getElementById('stockDataDate').textContent =
+      stocksData.generated_at ? '更新於 ' + stocksData.generated_at : '';
+  } catch (e) {
+    document.getElementById('stockResult').innerHTML =
+      `<div class="err">個股籌碼資料讀取失敗：${e.message}（可能是 stocks.json 尚未由排程產生過）</div>`;
+  }
+}
+loadStocksData();
+
+function renderStockResults(query) {
+  const box = document.getElementById('stockResult');
+  if (!stocksData || !query) { box.innerHTML = ''; return; }
+  const q = query.trim().toUpperCase();
+  const matches = Object.entries(stocksData.stocks || {})
+    .filter(([code, info]) => code.toUpperCase().includes(q) || (info.name || '').includes(query))
+    .slice(0, 20);
+
+  if (matches.length === 0) {
+    box.innerHTML = `<div class="note">找不到符合「${query}」的股票</div>`;
+    return;
+  }
+
+  box.innerHTML = matches.map(([code, info]) => `
+    <div class="metric-row" style="padding:10px 0;">
+      <span class="label">${code} ${info.name || ''}</span>
+      <span style="text-align:right;">
+        籌碼集中度：${info.concentration_pct != null ? info.concentration_pct + '%' : '無資料'}　
+        外資持股比：${info.foreign_holding_pct != null ? info.foreign_holding_pct + '%' : '無資料'}
+      </span>
+    </div>
+  `).join('');
+}
+
+document.getElementById('stockInput').addEventListener('input', (e) => {
+  renderStockResults(e.target.value);
+});
 </script>
 </body>
 </html>
