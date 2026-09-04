@@ -28,8 +28,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
           git diff --quiet --cached || git commit -m "自動更新選擇權籌碼資料 $(date -u +%Y-%m-%d)"
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "推送衝突，重試第 $i 次..."
+            sleep 5
+          done
 
   update-stock-chips:
     runs-on: ubuntu-latest
@@ -47,5 +50,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add stocks.json
           git diff --quiet --cached || git commit -m "自動更新個股籌碼資料 $(date -u +%Y-%m-%d)"
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "推送衝突，重試第 $i 次..."
+            sleep 5
+          done
