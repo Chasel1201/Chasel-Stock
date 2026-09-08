@@ -1,24 +1,29 @@
 {
-  "generated_at": "2026-09-07 15:15:09",
+  "generated_at": "2026-09-08 15:14:09",
   "weekly_hint": "本週週三選即將到期，適合作為主力收租/調節部位",
   "put_call_ratio": {
     "status": "ok",
-    "date": "20260904",
-    "oi_ratio": 99.8,
-    "vol_ratio": 98.45,
-    "bias": "neutral",
-    "note": "中性，無明顯籌碼傾向"
+    "date": "20260907",
+    "oi_ratio": 111.69,
+    "vol_ratio": 123.89,
+    "bias": "bearish",
+    "note": "偏悲觀（賣權未平倉相對偏多）"
   },
   "institutional": {
     "status": "ok",
-    "date": "20260904",
-    "call_net": -863.0,
-    "put_net": -978.0,
+    "date": "20260907",
+    "call_net": -1408.0,
+    "put_net": -3307.0,
     "bias": "neutral",
     "note": "三大法人籌碼方向不明確"
   },
   "large_traders": {
-    "status": "error",
-    "message": "Expecting value: line 1 column 1 (char 0)"
+    "status": "ok",
+    "date": "20260907",
+    "call_skew": -15915.0,
+    "put_skew": 12323.0,
+    "bias": "bearish",
+    "note": "十大交易人籌碼偏空",
+    "coverage_note": "此數字加總臺指選擇權所有到期別（週選+月選），非單獨本週選"
   }
 }
