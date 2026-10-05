@@ -1,29 +1,20 @@
 {
-  "generated_at": "2026-10-02 21:40:15",
-  "weekly_hint": "今日為週五選結算日，盤中以了結/調整既有部位為主",
+  "generated_at": "2026-10-05 23:40:08",
+  "weekly_hint": "本週週三選即將到期，適合作為主力收租/調節部位",
   "put_call_ratio": {
     "status": "ok",
-    "date": "20261001",
-    "oi_ratio": 82.54,
-    "vol_ratio": 91.11,
+    "date": "20261002",
+    "oi_ratio": 80.84,
+    "vol_ratio": 89.16,
     "bias": "neutral",
     "note": "中性，無明顯籌碼傾向"
   },
   "institutional": {
-    "status": "ok",
-    "date": "20261001",
-    "call_net": -5563.0,
-    "put_net": 6796.0,
-    "bias": "bearish",
-    "note": "三大法人籌碼偏空方"
+    "status": "error",
+    "message": "Expecting value: line 1 column 1 (char 0)"
   },
   "large_traders": {
-    "status": "ok",
-    "date": "20261001",
-    "call_skew": -29282.0,
-    "put_skew": -10675.0,
-    "bias": "neutral",
-    "note": "十大交易人籌碼方向不明確",
-    "coverage_note": "此數字加總臺指選擇權所有到期別（週選+月選），非單獨本週選"
+    "status": "error",
+    "message": "Expecting value: line 1 column 1 (char 0)"
   }
 }
