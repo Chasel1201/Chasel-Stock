@@ -1,16 +1,21 @@
 {
-  "generated_at": "2026-10-13 00:34:35",
+  "generated_at": "2026-10-13 22:52:11",
   "weekly_hint": "本週週三選即將到期，適合作為主力收租/調節部位",
   "put_call_ratio": {
     "status": "error",
-    "message": "HTTP Error 403: Forbidden"
+    "message": "Expecting value: line 1 column 1 (char 0)"
   },
   "institutional": {
     "status": "error",
-    "message": "HTTP Error 403: Forbidden"
+    "message": "Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)"
   },
   "large_traders": {
-    "status": "error",
-    "message": "HTTP Error 403: Forbidden"
+    "status": "ok",
+    "date": "20261012",
+    "call_skew": -22874.0,
+    "put_skew": -497.0,
+    "bias": "neutral",
+    "note": "十大交易人籌碼方向不明確",
+    "coverage_note": "此數字加總臺指選擇權所有到期別（週選+月選），非單獨本週選"
   }
 }
