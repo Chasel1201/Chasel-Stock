@@ -46,6 +46,9 @@ TWSE_INDUSTRY = {
 
 
 # ---------- 抓資料 ----------
+DIAG = {}
+
+
 def fetch_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=90) as resp:
@@ -102,7 +105,9 @@ def load_companies():
             rows = fetch_json(url)
         except Exception as e:
             print(f"  [警告] {mkt}公司基本資料抓取失敗：{e}")
+            DIAG[f"company_{mkt}"] = f"error: {e}"
             continue
+        DIAG[f"company_{mkt}"] = {"rows": len(rows), "keys": list(rows[0].keys())[:30] if rows else [], "sample": rows[0] if rows else None}
         n = 0
         for r in rows:
             code = pick(r, "公司代號", "SecuritiesCompanyCode", "CompanyCode", "Code")
@@ -125,6 +130,7 @@ def load_quotes():
     # 上市
     try:
         rows = fetch_json("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL")
+        DIAG["quotes_上市"] = {"rows": len(rows), "sample": rows[0] if rows else None}
         for r in rows:
             code = str(pick(r, "Code", "證券代號") or "").strip()
             close = num(pick(r, "ClosingPrice", "收盤價"))
@@ -143,6 +149,7 @@ def load_quotes():
     # 上櫃
     try:
         rows = fetch_json("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes")
+        DIAG["quotes_上櫃"] = {"rows": len(rows), "sample": rows[0] if rows else None}
         for r in rows:
             code = str(pick(r, "SecuritiesCompanyCode", "代號", "Code") or "").strip()
             close = num(pick(r, "Close", "收盤"))
@@ -157,6 +164,7 @@ def load_quotes():
         print(f"  上櫃行情 {len(rows)} 筆")
     except Exception as e:
         print(f"  [警告] 上櫃行情抓取失敗：{e}")
+        DIAG["quotes_上櫃"] = f"error: {e}"
 
     return out, date_seen
 
@@ -292,6 +300,7 @@ def main():
         "big": big,
         "sub": sub,
         "stocks": picks,
+        "diag": dict(DIAG, matched={m: sum(1 for x in stocks if x["mkt"] == m) for m in ("上市", "上櫃")}),
     }
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(OUT_FILE, "w", encoding="utf-8") as f:
