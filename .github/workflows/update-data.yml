@@ -6,6 +6,9 @@ on:
     - cron: '0 7 * * 1-5'
     # 個股籌碼（大戶/外資持股比）：台北時間下午4點半（UTC 08:30），外資持股比公布較晚
     - cron: '30 8 * * 1-5'
+    # 盤後雷達（產業資金流向＋強勢股）：台北時間下午4點40分（UTC 08:40），晚上6點10分（UTC 10:10）再補跑一次，避免資料源晚更新
+    - cron: '40 8 * * 1-5'
+    - cron: '10 10 * * 1-5'
   workflow_dispatch: {}
 
 permissions:
@@ -50,6 +53,28 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add stocks.json
           git diff --quiet --cached || git commit -m "自動更新個股籌碼資料 $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "推送衝突，重試第 $i 次..."
+            sleep 5
+          done
+
+  update-flow-radar:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '40 8 * * 1-5' || github.event.schedule == '10 10 * * 1-5' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 抓取盤後產業資金流向與強勢股
+        run: python fetch_flow.py
+      - name: 提交 flow/flow.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add flow/flow.json flow/history.json
+          git diff --quiet --cached || git commit -m "自動更新盤後雷達資料 $(date -u +%Y-%m-%d)"
           for i in 1 2 3 4 5; do
             git pull --rebase && git push && break
             echo "推送衝突，重試第 $i 次..."
