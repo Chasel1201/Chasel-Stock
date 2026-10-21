@@ -73,6 +73,26 @@ def today_quotes():
         print(f"  上櫃今日行情 {n} 筆")
     except Exception as e:
         print(f"  [警告] 上櫃今日行情失敗：{e}")
+
+    # 備援：OpenAPI 常比較晚更新。若今天是交易日、已過 14:30，但 OpenAPI 還是舊資料，
+    # 改從證交所／櫃買的每日收盤行情頁抓今天的資料（這兩個來源通常 15:00 前後就有）
+    now = datetime.now(TAIPEI_TZ)
+    today = now.strftime("%Y%m%d")
+    if now.weekday() < 5 and now.hour * 60 + now.minute >= 14 * 60 + 30:
+        have = out.get(today, {})
+        if sum(1 for v in have.values() if v[1] == "上市") < 500:
+            try:
+                q = hist_twse(today)
+                print(f"  [備援] 上市今日行情改用每日收盤行情頁：{len(q)} 筆")
+                for code, val in q.items():
+                    out.setdefault(today, {})[code] = val
+            except Exception as e:
+                print(f"  [備援] 上市每日收盤行情頁失敗：{e}")
+        if sum(1 for v in out.get(today, {}).values() if v[1] == "上櫃") < 300:
+            q = hist_tpex(today)
+            print(f"  [備援] 上櫃今日行情改用每日收盤行情頁：{len(q)} 筆")
+            for code, val in q.items():
+                out.setdefault(today, {})[code] = val
     return out
 
 
@@ -461,8 +481,12 @@ def write_reports(hist, comp):
         n += 1
     index.sort()
     latest = max((s["r"][-1][0] for s in hist["stocks"].values() if s["r"]), default="")
+    mdates = {}
+    for code, s in hist["stocks"].items():
+        if code in comp and s["r"]:
+            mdates[s["m"]] = max(mdates.get(s["m"], ""), s["r"][-1][0])
     with open(os.path.join(OUT_DIR, "index.json"), "w", encoding="utf-8") as f:
-        json.dump({"date": latest, "generated_at": datetime.now(TAIPEI_TZ).strftime("%Y-%m-%d %H:%M:%S"),
+        json.dump({"date": latest, "dates": mdates, "generated_at": datetime.now(TAIPEI_TZ).strftime("%Y-%m-%d %H:%M:%S"),
                    "stocks": index}, f, ensure_ascii=False, separators=(",", ":"))
     print(f"報告已產生 {n} 檔，最新資料日 {latest}")
     return n

@@ -533,7 +533,8 @@ async function loadIndex(){
     if(!r.ok)throw 0;
     RIDX=await r.json();
     $("#rList").innerHTML=RIDX.stocks.map(x=>`<option value="${esc(x[0])} ${esc(x[1])}">`).join("");
-    $("#rInfo").textContent=`共 ${RIDX.stocks.length} 檔，資料日 ${ymd(RIDX.date)}，${RIDX.generated_at.slice(5,16)} 更新`;
+    const D=RIDX.dates||{};const dd=D["上市"]&&D["上櫃"]?(D["上市"]===D["上櫃"]?ymd(D["上市"]):`上市 ${ymd(D["上市"])}、上櫃 ${ymd(D["上櫃"])}`):ymd(RIDX.date);
+    $("#rInfo").textContent=`共 ${RIDX.stocks.length} 檔，資料日 ${dd}，${RIDX.generated_at.slice(5,16)} 更新`;
   }catch(e){$("#rInfo").textContent="報告資料尚未產生，請到 GitHub Actions 手動執行「Update stock reports」。"}
 }
 const ymd=d=>d?`${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`:"—";
