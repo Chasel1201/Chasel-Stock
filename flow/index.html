@@ -579,17 +579,13 @@ function renderReport(){
       <div><div class="l">等幅目標 / 波段防守（MA20）</div><div class="v">${pv(W.target)} / ${pv(W.guard)}</div></div>
       <div><div class="l">週線盤跌盤堅</div><div class="v">${W.wband?pv(W.wband[0])+" – "+pv(W.wband[1]):"—"} <small class="${stc(W.wstate)}">${W.wstate}</small></div></div>
       <div><div class="l">均線 MA5 / MA20 / MA60</div><div class="v">${W.ma.map(pv).join(" / ")}</div></div>
-      <div><div class="l">波段平均績效（站上盤堅後 10 日）</div><div class="v">${P.avg==null?"樣本不足":sgn(P.avg)+"%"}<small>${P.n} 次${P.win==null?"":"，上漲機率 "+P.win+"%"}</small></div></div>
+      <div><div class="l">波段平均績效</div><div class="v">${P.avg==null?"樣本不足":sgn(P.avg)+"%"}<small>${P.n} 次${P.win==null?"":"，上漲機率 "+P.win+"%"}</small></div></div>
     </div>
     <h4>[波段觀察]</h4><ul>${W.text.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
   }
-  $("#rpBody").innerHTML=head+body+`<details><summary>這些數字怎麼算的？</summary>
-    <p><b>支撐壓力</b>：Pivot Point，P＝(高＋低＋收)÷3，壓力 R1＝2P−低，支撐 S1＝2P−高。續強點＝R1。</p>
-    <p><b>盤跌盤堅</b>：近 3 日權重 1:2:1。中軸＝[(今高＋今低)＋(昨高＋昨低＋昨收×2)＋(前高＋前低)]÷8；半寬＝[今振幅＋2×昨振幅＋前振幅]÷8。盤堅＝中軸＋半寬，盤跌＝中軸−半寬。收盤高於盤堅為盤堅，低於盤跌為盤跌，其餘為盤整。週線版用週 K 套同一公式。</p>
-    <p><b>股票箱</b>：短線取近 10 日最高／最低為箱頂／箱底，上下各延伸 0.382 倍箱高；波段取近 20 日，等幅目標＝箱頂＋箱高。</p>
-    <p><b>多方強度</b>：(K 值÷100＋當日收盤在高低間的位置＋10 日區間位置＋均線排列成立比例)÷4。<b>資金動能</b>：近 5 日上漲日成交量÷近 5 日總量。</p>
-    <p><b>波段平均績效</b>：本站資料期間內，收盤由下往上站上盤堅之後 10 個交易日的平均報酬。過去表現不代表未來。</p>
-    <p>本報告共使用 ${r.days} 個交易日資料。價位依台股升降單位四捨五入。</p></details>
+  $("#rpBody").innerHTML=head+body+`<details><summary>報告說明</summary>
+    <p>本報告依每日盤後的開高低收與成交量，綜合價格區間、波動幅度、均線與量能等技術面資料，由程式自動整理而成。數字每個交易日盤後更新，價位依台股升降單位顯示。</p>
+    <p>本報告共使用 ${r.days} 個交易日資料。</p></details>
     <div class="disc">本報告由程式依證交所、櫃買中心公開盤後資料以固定公式自動產生，僅描述技術面狀態，供研究參考，不構成任何投資建議、買賣推介或獲利保證。投資人應自行判斷並承擔風險。</div>`;
   $("#rpClose").onclick=closeReport;
   document.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>{RTAB=b.dataset.rt;renderReport()});

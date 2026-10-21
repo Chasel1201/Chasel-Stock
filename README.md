@@ -53,4 +53,3 @@
 - 程式：`fetch_reports.py`，排程：`.github/workflows/update-reports.yml`（每個交易日 16:55、18:25 自動執行）
 - 歷史資料：`reports_data/ohlc.json`（保留近 130 個交易日），報告輸出：`flow/reports/<代號>.json`
 - 第一次使用或資料中斷：到 Actions →「Update stock reports」→ Run workflow，`backfill` 填 `120`
-- 公式全部公開，詳見 `fetch_reports.py` 開頭說明與報告頁面的「這些數字怎麼算的？」
