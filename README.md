@@ -46,3 +46,11 @@
 - `flow/index.html`：網頁本體，讀取同資料夾的 `flow.json`。
 - 排程：每個交易日台北時間 16:40 跑一次，18:10 再補跑一次。也可以在 Actions 分頁手動 Run workflow。
 - 強勢股條件：周轉率 ≥ 10%、成交量 ≥ 1 萬張、漲幅 ≥ 3%（寫在 `fetch_flow.py` 最上方，可修改）。
+
+## 盤後短線報告／波段報告
+
+- 網址：盤後雷達的「籌碼強勢股」分頁，每檔股票有「盤後報告」按鈕，上方搜尋框可查任何上市櫃普通股
+- 程式：`fetch_reports.py`，排程：`.github/workflows/update-reports.yml`（每個交易日 16:55、18:25 自動執行）
+- 歷史資料：`reports_data/ohlc.json`（保留近 130 個交易日），報告輸出：`flow/reports/<代號>.json`
+- 第一次使用或資料中斷：到 Actions →「Update stock reports」→ Run workflow，`backfill` 填 `120`
+- 公式全部公開，詳見 `fetch_reports.py` 開頭說明與報告頁面的「這些數字怎麼算的？」

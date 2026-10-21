@@ -1,0 +1,48 @@
+name: Update stock reports
+
+on:
+  schedule:
+    # 盤後短線報告／波段報告：台北時間下午4點55分（UTC 08:55），晚上6點25分（UTC 10:25）再補跑一次
+    - cron: '55 8 * * 1-5'
+    - cron: '25 10 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: '往回補幾個交易日的歷史資料（第一次請填 120，平常填 0）'
+        required: false
+        default: '0'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-reports
+  cancel-in-progress: false
+
+jobs:
+  update-reports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 產生盤後報告
+        run: |
+          if [ "${{ github.event.inputs.backfill }}" != "" ] && [ "${{ github.event.inputs.backfill }}" != "0" ]; then
+            python fetch_reports.py --backfill "${{ github.event.inputs.backfill }}"
+          else
+            python fetch_reports.py
+          fi
+      - name: 提交報告
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports_data flow/reports
+          git diff --quiet --cached || git commit -m "自動更新盤後報告 $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            echo "推送衝突，重試第 $i 次..."
+            sleep 5
+          done

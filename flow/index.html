@@ -153,6 +153,39 @@ footer b{color:var(--dim)}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .err{padding:28px;text-align:center;color:var(--dim);border:1px dashed var(--line2)}
+/* ===== 盤後報告：搜尋 + 面板 ===== */
+.rsearch{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line2);margin-bottom:14px;background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.rsearch b{font-family:var(--f-disp);letter-spacing:.06em;font-size:13px;color:var(--accent2)}
+.rsearch input{flex:1;min-width:180px;font-family:var(--f-num);font-size:14px;background:var(--bg);color:var(--fg);border:1px solid var(--line2);padding:7px 10px;border-radius:2px}
+.rsearch small{color:var(--mute);font-size:12px;width:100%}
+.rbtn{font-family:var(--f-disp);font-weight:600;font-size:12px;letter-spacing:.04em;color:var(--accent2);background:transparent;border:1px solid var(--accent);padding:3px 9px;border-radius:2px;cursor:pointer;white-space:nowrap}
+.rbtn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 12px var(--glow)}
+#rpt{position:fixed;inset:0;z-index:60;display:flex;justify-content:center;align-items:flex-start;padding:24px 16px;overflow-y:auto;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(6px)}
+#rpt[hidden]{display:none}
+.rp{width:100%;max-width:820px;margin:auto 0}
+.rp .hd{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.rp h3{margin:0;font-family:var(--f-disp);font-size:24px;letter-spacing:.04em}
+.rp h3 span{font-family:var(--f-num);font-size:15px;color:var(--dim);margin-right:8px}
+.rp .px{font-family:var(--f-num);font-size:13px;color:var(--dim);margin-top:4px;line-height:1.7}
+.rp .px b{font-size:20px}
+.rp .seg2{display:flex;gap:4px;margin:16px 0 4px}
+.rp .seg2 button{font-family:var(--f-disp);font-weight:600;font-size:13px;letter-spacing:.05em;color:var(--dim);background:transparent;border:1px solid var(--line2);padding:6px 14px;border-radius:2px;cursor:pointer}
+.rp .seg2 button.on{color:var(--bg);background:var(--accent);border-color:var(--accent);box-shadow:0 0 14px var(--glow)}
+.rp .lv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.rp .lv>div{border:1px solid var(--line);padding:10px 12px;background:var(--bg2)}
+.rp .lv .l{font-size:12px;color:var(--dim)}
+.rp .lv .v{font-family:var(--f-num);font-size:16px;font-weight:600;margin-top:2px}
+.rp .lv .v small{font-size:12px;color:var(--mute);font-weight:400;margin-left:6px}
+.rp h4{font-family:var(--f-disp);letter-spacing:.06em;font-size:14px;color:var(--accent2);margin:18px 0 6px}
+.rp ul{margin:0;padding-left:20px}
+.rp li{margin:4px 0}
+.rp .meter{height:8px;background:var(--bg);border:1px solid var(--line);margin-top:6px}
+.rp .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.rp details{margin-top:16px;border:1px dashed var(--line2);padding:10px 12px;font-size:12.5px;color:var(--dim)}
+.rp summary{cursor:pointer;color:var(--fg);font-weight:500}
+.rp .disc{margin-top:14px;font-size:12px;color:var(--mute);line-height:1.7}
+.st-up{color:var(--up)}.st-dn{color:var(--dn)}.st-fl{color:var(--flat)}
+@media (max-width:560px){.rp .lv{grid-template-columns:1fr}.rp h3{font-size:20px}}
 #optFrame{display:block;width:100%;height:1400px;border:0;background:transparent}
 .optwrap{padding:0;overflow:hidden}
 html,body{margin:0}
@@ -238,6 +271,13 @@ html,body{margin:0}
       </div>
     </div>
     <div class="kpis" id="pickKpi" style="margin-bottom:16px"></div>
+    <form class="rsearch" id="rForm">
+      <b>盤後報告查詢</b>
+      <input id="rQ" list="rList" placeholder="輸入代號或名稱，例如 6213 或 聯茂" autocomplete="off" aria-label="搜尋個股盤後報告">
+      <datalist id="rList"></datalist>
+      <button class="btn" type="submit">查看報告</button>
+      <small id="rInfo">上市櫃普通股每個交易日盤後自動更新</small>
+    </form>
     <form class="filters" id="flt" onsubmit="return false">
       <label for="fTurn">周轉率 ≥ <input id="fTurn" type="number" step="0.5" value="10"> %</label>
       <label for="fVol">成交量 ≥ <input id="fVol" type="number" step="1000" value="10000"> 張</label>
@@ -262,6 +302,7 @@ html,body{margin:0}
 </footer>
 </div>
 
+<div id="rpt" hidden role="dialog" aria-modal="true" aria-label="盤後報告"><section class="sec hud rp" id="rpBody"></section></div>
 <div id="tip" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
@@ -298,7 +339,8 @@ function openOptions(){const f=$("#optFrame");if(f.dataset.loaded)return;f.datas
     setTimeout(fitOpt,800);setTimeout(fitOpt,2500);};
   f.src="../index.html";}
 document.querySelectorAll("nav.tabs a[data-tab]").forEach(a=>a.onclick=e=>{e.preventDefault();showTab(a.dataset.tab);history.replaceState(null,"","#"+a.dataset.tab)});
-showTab(location.hash.replace("#","")||(()=>{try{return localStorage.getItem("chasel-tab")}catch(e){return null}})());
+const RHASH=(location.hash.match(/^#report=(\w+)/)||[])[1];
+showTab(RHASH?"picks":(location.hash.replace("#","")||(()=>{try{return localStorage.getItem("chasel-tab")}catch(e){return null}})()));
 
 /* ===== load ===== */
 async function load(silent){
@@ -454,14 +496,14 @@ function drawPicks(){
   <div class="kpi"><div class="l">合計成交量</div><div class="v">${fmt(vol,0)}<small>張</small></div></div>`;
   const ch=ok=>`<span class="chips">${["周轉","量能","漲幅"].map((n,i)=>`<span class="${ok[i]?"y":"x"}">${n}</span>`).join("")}</span>`;
   let n=0;
-  $("#pickT").innerHTML=`<thead><tr><th>#</th><th>代碼 / 股票</th><th>產業</th><th>狀態</th><th>收盤價</th><th>漲跌</th><th>漲跌%</th><th>成交量(張)</th><th>成交值(億)</th><th>周轉率%</th></tr></thead><tbody>`+
+  $("#pickT").innerHTML=`<thead><tr><th>#</th><th>代碼 / 股票</th><th>產業</th><th>狀態</th><th>收盤價</th><th>漲跌</th><th>漲跌%</th><th>成交量(張)</th><th>成交值(億)</th><th>周轉率%</th><th>報告</th></tr></thead><tbody>`+
   (list.length?list.map(r=>{const s=r.s;const rk=r.pass?String(++n).padStart(2,"0"):"—";return `<tr class="${r.pass?"pass":"fail"}"><td class="rk">${rk}</td>
   <td class="nm"><span style="font-family:var(--f-num);font-weight:400;color:var(--dim);margin-right:8px">${esc(s.code)}</span>${esc(s.name)}</td>
   <td style="font-family:var(--f-body);text-align:left;color:var(--dim)">${esc(s.ind)}<small style="margin-left:6px;color:var(--mute)">${esc(s.mkt)}</small></td>
   <td style="font-family:var(--f-body)">${r.pass?'<span class="lock ok">LOCKED</span>':ch(r.ok)}</td>
   <td class="${cls(s.chg)}">${fmt(s.close)}</td><td class="${cls(s.chg)}">${s.chg>0?"▲":s.chg<0?"▼":""}${fmt(Math.abs(s.chg))}</td>
   <td class="${cls(s.pct)} ${s.pct>=9.5?"hot":""}">${sgn(s.pct)}%</td>
-  <td>${fmt(s.vol,0)}</td><td>${fmt(s.val)}</td><td style="color:var(--accent2);font-weight:600">${fmt(s.turn)}</td></tr>`}).join(""):`<tr><td colspan="10" style="text-align:center;font-family:var(--f-body);color:var(--dim);padding:28px">今天沒有個股同時達標，試著放寬篩選門檻。</td></tr>`)+"</tbody>";
+  <td>${fmt(s.vol,0)}</td><td>${fmt(s.val)}</td><td style="color:var(--accent2);font-weight:600">${fmt(s.turn)}</td><td><button class="rbtn" type="button" data-rpt="${esc(s.code)}">盤後報告</button></td></tr>`}).join(""):`<tr><td colspan="11" style="text-align:center;font-family:var(--f-body);color:var(--dim);padding:28px">今天沒有個股同時達標，試著放寬篩選門檻。</td></tr>`)+"</tbody>";
 }
 ["fTurn","fVol","fChg","fAll"].forEach(id=>$("#"+id).addEventListener("input",()=>DATA&&drawPicks()));
 
@@ -482,6 +524,92 @@ document.querySelectorAll("[data-refresh]").forEach(b=>b.onclick=()=>{b.classLis
 })();
 
 load(true);
+
+/* ===== 盤後短線報告 / 波段報告 ===== */
+let RIDX=null, RCUR=null, RTAB="short";
+async function loadIndex(){
+  try{
+    const r=await fetch("./reports/index.json?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok)throw 0;
+    RIDX=await r.json();
+    $("#rList").innerHTML=RIDX.stocks.map(x=>`<option value="${esc(x[0])} ${esc(x[1])}">`).join("");
+    $("#rInfo").textContent=`共 ${RIDX.stocks.length} 檔，資料日 ${ymd(RIDX.date)}，${RIDX.generated_at.slice(5,16)} 更新`;
+  }catch(e){$("#rInfo").textContent="報告資料尚未產生，請到 GitHub Actions 手動執行「Update stock reports」。"}
+}
+const ymd=d=>d?`${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`:"—";
+function findCode(q){
+  q=String(q||"").trim(); if(!q)return null;
+  const m=q.match(/^\w+/); if(RIDX){
+    let hit=RIDX.stocks.find(x=>x[0]===(m&&m[0]));
+    if(!hit)hit=RIDX.stocks.find(x=>x[1]===q)||RIDX.stocks.find(x=>x[1].includes(q));
+    return hit?hit[0]:null;
+  }
+  return m?m[0]:null;
+}
+const stc=s=>s==="盤堅"?"st-up":s==="盤跌"?"st-dn":"st-fl";
+const pv=x=>x==null?"—":Number(x).toLocaleString("zh-TW",{maximumFractionDigits:2});
+function meter(v){return `<div class="meter"><i style="width:${Math.max(0,Math.min(100,v))}%"></i></div>`}
+function renderReport(){
+  const r=RCUR, S=r.short, W=r.swing;
+  const head=`<div class="hd"><div><h3><span>${esc(r.code)}</span>${esc(r.name)} <small style="font-size:13px;color:var(--mute)">${esc(r.mkt)}</small></h3>
+    <div class="px">${ymd(r.date)} 盤後　開 ${pv(r.o)}　高 ${pv(r.h)}　低 ${pv(r.l)}　收 <b class="${cls(r.chg)}">${pv(r.c)}</b>
+    <span class="${cls(r.chg)}">${r.chg>0?"▲":r.chg<0?"▼":""}${pv(Math.abs(r.chg))}（${sgn(r.pct)}%）</span><br>
+    今量 ${fmt(r.vol,0)} 張　5 日均量 ${fmt(r.vol5,0)} 張　量比 ${r.vr==null?"—":r.vr.toFixed(2)}</div></div>
+    <button class="btn" type="button" id="rpClose" aria-label="關閉報告">✕ 關閉</button></div>
+    <div class="seg2" role="tablist"><button type="button" data-rt="short" class="${RTAB==="short"?"on":""}">短線盤後報告</button><button type="button" data-rt="swing" class="${RTAB==="swing"?"on":""}">波段報告（${W.n} 日）</button></div>`;
+  let body;
+  if(RTAB==="short"){
+    body=`<div class="lv">
+      <div><div class="l">支撐壓力（S1 – R1）</div><div class="v">${pv(S.pivot[0])} – ${pv(S.pivot[2])}<small>樞紐 ${pv(S.pivot[1])}　續強點 ${pv(S.key)}</small></div></div>
+      <div><div class="l">盤跌盤堅（今日）</div><div class="v">${S.band?pv(S.band[0])+" – "+pv(S.band[1]):"—"} <span class="${stc(S.state)}">${S.arrow} ${S.state}</span></div></div>
+      <div><div class="l">前日盤跌盤堅</div><div class="v">${S.pband?pv(S.pband[0])+" – "+pv(S.pband[1]):"—"} <small class="${stc(S.pstate)}">${S.pstate}</small></div></div>
+      <div><div class="l">股票箱（10 日）</div><div class="v">${S.box.map(pv).join(" – ")}</div></div>
+      <div><div class="l">多方強度</div><div class="v">${S.strength.toFixed(2)}%</div>${meter(S.strength)}</div>
+      <div><div class="l">資金動能</div><div class="v">${S.money.toFixed(2)}%</div>${meter(S.money)}</div>
+      <div><div class="l">均線 MA5 / MA12 / MA30</div><div class="v">${S.ma.map(pv).join(" / ")}</div></div>
+      <div><div class="l">KD（9 日）</div><div class="v">K ${S.kd[0].toFixed(2)} / D ${S.kd[1].toFixed(2)}</div></div>
+    </div>
+    <h4>[反轉分析]</h4><ul>${S.rev.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <h4>[短線技術觀察]</h4><ul>${S.tech.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+  }else{
+    const P=W.perf;
+    body=`<div class="lv">
+      <div><div class="l">${W.n} 日區間（箱底 – 箱頂）</div><div class="v">${pv(W.box[0])} – ${pv(W.box[1])}<small>位置 ${W.pos}%</small></div>${meter(W.pos)}</div>
+      <div><div class="l">中期趨勢</div><div class="v">${esc(W.trend)}<small>${W.n} 日漲跌 ${sgn(W.ret)}%</small></div></div>
+      <div><div class="l">等幅目標 / 波段防守（MA20）</div><div class="v">${pv(W.target)} / ${pv(W.guard)}</div></div>
+      <div><div class="l">週線盤跌盤堅</div><div class="v">${W.wband?pv(W.wband[0])+" – "+pv(W.wband[1]):"—"} <small class="${stc(W.wstate)}">${W.wstate}</small></div></div>
+      <div><div class="l">均線 MA5 / MA20 / MA60</div><div class="v">${W.ma.map(pv).join(" / ")}</div></div>
+      <div><div class="l">波段平均績效（站上盤堅後 10 日）</div><div class="v">${P.avg==null?"樣本不足":sgn(P.avg)+"%"}<small>${P.n} 次${P.win==null?"":"，上漲機率 "+P.win+"%"}</small></div></div>
+    </div>
+    <h4>[波段觀察]</h4><ul>${W.text.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+  }
+  $("#rpBody").innerHTML=head+body+`<details><summary>這些數字怎麼算的？</summary>
+    <p><b>支撐壓力</b>：Pivot Point，P＝(高＋低＋收)÷3，壓力 R1＝2P−低，支撐 S1＝2P−高。續強點＝R1。</p>
+    <p><b>盤跌盤堅</b>：近 3 日權重 1:2:1。中軸＝[(今高＋今低)＋(昨高＋昨低＋昨收×2)＋(前高＋前低)]÷8；半寬＝[今振幅＋2×昨振幅＋前振幅]÷8。盤堅＝中軸＋半寬，盤跌＝中軸−半寬。收盤高於盤堅為盤堅，低於盤跌為盤跌，其餘為盤整。週線版用週 K 套同一公式。</p>
+    <p><b>股票箱</b>：短線取近 10 日最高／最低為箱頂／箱底，上下各延伸 0.382 倍箱高；波段取近 20 日，等幅目標＝箱頂＋箱高。</p>
+    <p><b>多方強度</b>：(K 值÷100＋當日收盤在高低間的位置＋10 日區間位置＋均線排列成立比例)÷4。<b>資金動能</b>：近 5 日上漲日成交量÷近 5 日總量。</p>
+    <p><b>波段平均績效</b>：本站資料期間內，收盤由下往上站上盤堅之後 10 個交易日的平均報酬。過去表現不代表未來。</p>
+    <p>本報告共使用 ${r.days} 個交易日資料。價位依台股升降單位四捨五入。</p></details>
+    <div class="disc">本報告由程式依證交所、櫃買中心公開盤後資料以固定公式自動產生，僅描述技術面狀態，供研究參考，不構成任何投資建議、買賣推介或獲利保證。投資人應自行判斷並承擔風險。</div>`;
+  $("#rpClose").onclick=closeReport;
+  document.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>{RTAB=b.dataset.rt;renderReport()});
+}
+async function openReport(code){
+  if(!code){toast("找不到這檔股票，請輸入代號或完整名稱");return}
+  try{
+    const r=await fetch(`./reports/${encodeURIComponent(code)}.json?t=`+Date.now(),{cache:"no-store"});
+    if(!r.ok)throw 0;
+    RCUR=await r.json();
+  }catch(e){toast(`${code} 目前沒有報告（可能是 ETF、權證或資料不足）`);return}
+  RTAB="short";renderReport();$("#rpt").hidden=false;document.body.style.overflow="hidden";
+  history.replaceState(null,"","#report="+code);$("#rpClose").focus();
+}
+function closeReport(){$("#rpt").hidden=true;document.body.style.overflow="";history.replaceState(null,"","#picks")}
+$("#rpt").addEventListener("click",e=>{if(e.target.id==="rpt")closeReport()});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#rpt").hidden)closeReport()});
+$("#rForm").addEventListener("submit",e=>{e.preventDefault();openReport(findCode($("#rQ").value))});
+$("#pickT").addEventListener("click",e=>{const b=e.target.closest("[data-rpt]");if(b)openReport(b.dataset.rpt)});
+loadIndex().then(()=>{if(RHASH)openReport(RHASH)});
 </script>
 </body>
 </html>
