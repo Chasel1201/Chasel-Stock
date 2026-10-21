@@ -35,3 +35,14 @@
 - `fetch_data.py` 裡解析期交所資料的欄位名稱，已經用真實回傳資料核對過（見對話中的除錯截圖）。
 - GitHub Actions 排程本身能不能順利跑起來、寫回 repo 成不成功，這需要你實際照著上面步驟做一次
   才能確認——我沒有 GitHub 帳號可以先幫你跑過。如果步驟5卡住，把 Actions 分頁裡的錯誤訊息貼給我。
+
+## 太空人 Chasel 盤後雷達（/flow/）
+
+網址：`https://chasel1201.github.io/Chasel-Stock/flow/`
+
+- `fetch_flow.py`：抓證交所、櫃買中心 OpenAPI 的盤後行情與公司基本資料，算出大產業／細產業資金流向與籌碼強勢股，寫成 `flow/flow.json`。
+- `flow/history.json`：保存每日各產業成交占比，用來算「占比變化（pp）」，所以第二個交易日起才會有 pp。
+- `sub_industries.json`：細產業（概念股）分組，可自行增刪股票代號。
+- `flow/index.html`：網頁本體，讀取同資料夾的 `flow.json`。
+- 排程：每個交易日台北時間 16:40 跑一次，18:10 再補跑一次。也可以在 Actions 分頁手動 Run workflow。
+- 強勢股條件：周轉率 ≥ 10%、成交量 ≥ 1 萬張、漲幅 ≥ 3%（寫在 `fetch_flow.py` 最上方，可修改）。
