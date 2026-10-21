@@ -20,6 +20,7 @@
 import json
 import os
 import sys
+import time
 import urllib.request
 from datetime import datetime, timezone, timedelta
 
@@ -49,10 +50,22 @@ TWSE_INDUSTRY = {
 DIAG = {}
 
 
-def fetch_json(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=90) as resp:
-        return json.loads(resp.read().decode("utf-8-sig", errors="replace"))
+def fetch_json(url, tries=4):
+    """資料源偶爾會暫時沒回應，失敗時等一下再重試。"""
+    last = None
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                data = json.loads(resp.read().decode("utf-8-sig", errors="replace"))
+            if isinstance(data, list) and data:
+                return data
+            last = ValueError("空的回應")
+        except Exception as e:
+            last = e
+        print(f"  第 {i + 1} 次抓取失敗，稍後重試：{url}（{last}）")
+        time.sleep(15 * (i + 1))
+    raise last
 
 
 def pick(row, *keys):
@@ -205,6 +218,10 @@ def main():
         q["turn"] = round(q["vol_sh"] / c["shares"] * 100, 2) if c.get("shares") else None
         stocks.append(q)
     print(f"  有效普通股 {len(stocks)} 檔，資料日期 {data_date}")
+    n_otc = sum(1 for x in stocks if x["mkt"] == "上櫃")
+    if n_otc < 300 and os.path.exists(OUT_FILE):
+        print(f"[錯誤] 上櫃只抓到 {n_otc} 檔，資料不完整，這次不覆寫 flow.json")
+        return 1
     if len(stocks) < 500:
         print("[錯誤] 有效個股太少，可能是資料源格式變動或尚未更新，這次不覆寫 flow.json")
         return 1
