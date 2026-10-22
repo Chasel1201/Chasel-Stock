@@ -182,22 +182,31 @@ def load_quotes():
     # 備援：證交所 OpenAPI 常常隔天才更新。若今天是交易日、已過 14:30，但 OpenAPI 還是舊資料，
     # 改從證交所／櫃買的「每日收盤行情」頁抓今天的資料（通常 15:00 前後就有）
     now = datetime.now(TAIPEI_TZ)
-    today = now.strftime("%Y%m%d")
     seen = str(norm_date(date_seen)).replace("/", "") if date_seen else ""
-    if now.weekday() < 5 and now.hour * 60 + now.minute >= 14 * 60 + 30 and seen != today:
+    # 要嘗試的日期：今天（過 14:30 才有）＋往前最近 3 個平日，只取比 OpenAPI 新的日期
+    cands = []
+    if now.weekday() < 5 and now.hour * 60 + now.minute >= 14 * 60 + 30:
+        cands.append(now.strftime("%Y%m%d"))
+    d = now
+    while len(cands) < 4:
+        d -= timedelta(days=1)
+        if d.weekday() < 5:
+            cands.append(d.strftime("%Y%m%d"))
+    for ymd in [c for c in cands if c > seen]:
         try:
-            twse, tpex = fallback_quotes(today)
+            twse, tpex = fallback_quotes(ymd)
         except Exception as e:
-            print(f"  [備援] 每日收盤行情頁失敗：{e}")
-            twse, tpex = [], []
+            print(f"  [備援] {ymd} 每日收盤行情頁失敗：{e}")
+            continue
         if len(twse) >= 500:
-            print(f"  [備援] 改用每日收盤行情頁：上市 {len(twse)}、上櫃 {len(tpex)} 筆（OpenAPI 仍為 {seen}）")
+            print(f"  [備援] 改用 {ymd} 每日收盤行情頁：上市 {len(twse)}、上櫃 {len(tpex)} 筆（OpenAPI 仍為 {seen}）")
             keep_otc = [x for x in out if x["mkt"] == "上櫃"]
             out = twse + (tpex if len(tpex) >= 300 else keep_otc)
-            date_seen = today
-            DIAG["fallback"] = {"date": today, "twse": len(twse), "tpex": len(tpex)}
-        else:
-            print(f"  [備援] 今日（{today}）每日收盤行情頁尚未提供資料，沿用 OpenAPI（{seen}）")
+            date_seen = ymd
+            DIAG["fallback"] = {"date": ymd, "twse": len(twse), "tpex": len(tpex), "openapi": seen}
+            break
+        print(f"  [備援] {ymd} 每日收盤行情頁沒有資料（可能休市或尚未公布）")
+        time.sleep(2)
     return out, date_seen
 
 
