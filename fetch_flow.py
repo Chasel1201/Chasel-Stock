@@ -179,7 +179,94 @@ def load_quotes():
         print(f"  [警告] 上櫃行情抓取失敗：{e}")
         DIAG["quotes_上櫃"] = f"error: {e}"
 
+    # 備援：證交所 OpenAPI 常常隔天才更新。若今天是交易日、已過 14:30，但 OpenAPI 還是舊資料，
+    # 改從證交所／櫃買的「每日收盤行情」頁抓今天的資料（通常 15:00 前後就有）
+    now = datetime.now(TAIPEI_TZ)
+    today = now.strftime("%Y%m%d")
+    seen = str(norm_date(date_seen)).replace("/", "") if date_seen else ""
+    if now.weekday() < 5 and now.hour * 60 + now.minute >= 14 * 60 + 30 and seen != today:
+        try:
+            twse, tpex = fallback_quotes(today)
+        except Exception as e:
+            print(f"  [備援] 每日收盤行情頁失敗：{e}")
+            twse, tpex = [], []
+        if len(twse) >= 500:
+            print(f"  [備援] 改用每日收盤行情頁：上市 {len(twse)}、上櫃 {len(tpex)} 筆（OpenAPI 仍為 {seen}）")
+            keep_otc = [x for x in out if x["mkt"] == "上櫃"]
+            out = twse + (tpex if len(tpex) >= 300 else keep_otc)
+            date_seen = today
+            DIAG["fallback"] = {"date": today, "twse": len(twse), "tpex": len(tpex)}
+        else:
+            print(f"  [備援] 今日（{today}）每日收盤行情頁尚未提供資料，沿用 OpenAPI（{seen}）")
     return out, date_seen
+
+
+def _get(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return json.loads(resp.read().decode("utf-8-sig", errors="replace"))
+
+
+def _cols(fields, *names):
+    idx = {}
+    for n in names:
+        for i, f in enumerate(fields):
+            if n in str(f):
+                idx[n] = i
+                break
+    return idx
+
+
+def fallback_quotes(ymd):
+    """從證交所 MI_INDEX 與櫃買每日收盤行情頁抓指定日期的全部個股。"""
+    twse = []
+    j = _get(f"https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX?date={ymd}&type=ALLBUT0999&response=json")
+    tables = list(j.get("tables") or [])
+    for k in j:
+        if k.startswith("fields") and ("data" + k[6:]) in j:
+            tables.append({"fields": j[k], "data": j["data" + k[6:]]})
+    for t in tables:
+        f = t.get("fields") or []
+        c = _cols(f, "證券代號", "證券名稱", "成交股數", "成交金額", "收盤價", "漲跌(+/-)", "漲跌價差")
+        if len(c) < 7:
+            continue
+        for r in t.get("data") or []:
+            close, vol = num(r[c["收盤價"]]), num(r[c["成交股數"]])
+            if close is None or vol is None:
+                continue
+            sign = str(r[c["漲跌(+/-)"]])
+            diff = num(r[c["漲跌價差"]]) or 0.0
+            chg = -diff if "-" in sign else (diff if "+" in sign else 0.0)
+            twse.append(dict(code=str(r[c["證券代號"]]).strip(), name=str(r[c["證券名稱"]]).strip(), mkt="上市",
+                             close=close, chg=chg, vol_sh=vol, val=num(r[c["成交金額"]]) or 0.0))
+    time.sleep(2)
+    tpex = []
+    y, m, d = ymd[:4], ymd[4:6], ymd[6:]
+    for url in (f"https://www.tpex.org.tw/www/zh-tw/afterTrading/otc?date={y}%2F{m}%2F{d}&type=EW&response=json",
+                f"https://www.tpex.org.tw/web/stock/aftertrading/otc_quotes_no1430/stk_wn1430_result.php?l=zh-tw&d={int(y) - 1911}/{m}/{d}&se=EW&o=json"):
+        try:
+            j = _get(url)
+        except Exception as e:
+            print(f"  [備援] 櫃買來源失敗：{e}")
+            continue
+        tables = list(j.get("tables") or [])
+        if j.get("aaData"):
+            tables.append({"fields": ["代號", "名稱", "收盤", "漲跌", "開盤", "最高", "最低", "均價", "成交股數", "成交金額"],
+                           "data": j["aaData"]})
+        for t in tables:
+            f = t.get("fields") or []
+            c = _cols(f, "代號", "名稱", "收盤", "漲跌", "成交股數", "成交金額")
+            if len(c) < 6:
+                continue
+            for r in t.get("data") or []:
+                close, vol = num(r[c["收盤"]]), num(r[c["成交股數"]])
+                if close is None or vol is None:
+                    continue
+                tpex.append(dict(code=str(r[c["代號"]]).strip(), name=str(r[c["名稱"]]).strip(), mkt="上櫃",
+                                 close=close, chg=num(r[c["漲跌"]]) or 0.0, vol_sh=vol, val=num(r[c["成交金額"]]) or 0.0))
+        if tpex:
+            break
+    return twse, tpex
 
 
 def norm_date(raw):
