@@ -1,29 +1,20 @@
 {
-  "generated_at": "2026-11-19 00:16:40",
-  "weekly_hint": "今晚為全週夜盤成交量最高時段，建議優先評估週五選因應",
+  "generated_at": "2026-11-20 00:24:38",
+  "weekly_hint": "今日為週五選結算日，盤中以了結/調整既有部位為主",
   "put_call_ratio": {
     "status": "ok",
-    "date": "20261117",
-    "oi_ratio": 54.08,
-    "vol_ratio": 78.95,
+    "date": "20261118",
+    "oi_ratio": 39.8,
+    "vol_ratio": 91.97,
     "bias": "bullish",
     "note": "偏樂觀（買權未平倉相對偏多）"
   },
   "institutional": {
-    "status": "ok",
-    "date": "20261117",
-    "call_net": -18213.0,
-    "put_net": 4082.0,
-    "bias": "bearish",
-    "note": "三大法人籌碼偏空方"
+    "status": "error",
+    "message": "Expecting value: line 1 column 1 (char 0)"
   },
   "large_traders": {
-    "status": "ok",
-    "date": "20261117",
-    "call_skew": -135422.0,
-    "put_skew": 5253.0,
-    "bias": "bearish",
-    "note": "十大交易人籌碼偏空",
-    "coverage_note": "此數字加總臺指選擇權所有到期別（週選+月選），非單獨本週選"
+    "status": "error",
+    "message": "Expecting value: line 1 column 1 (char 0)"
   }
 }
