@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-20 00:24:38",
+  "generated_at": "2026-11-20 23:57:29",
   "weekly_hint": "今日為週五選結算日，盤中以了結/調整既有部位為主",
   "put_call_ratio": {
     "status": "ok",
-    "date": "20261118",
-    "oi_ratio": 39.8,
-    "vol_ratio": 91.97,
+    "date": "20261119",
+    "oi_ratio": 41.0,
+    "vol_ratio": 73.38,
     "bias": "bullish",
     "note": "偏樂觀（買權未平倉相對偏多）"
   },
