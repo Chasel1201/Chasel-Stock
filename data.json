@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-11-24 03:03:13",
-  "weekly_hint": "本週週三選即將到期，適合作為主力收租/調節部位",
+  "generated_at": "2026-11-25 02:43:05",
+  "weekly_hint": "今日為週三選結算日，收盤後可轉往下週週三選，留意今晚夜盤是否需加開週五選",
   "put_call_ratio": {
     "status": "ok",
-    "date": "20261120",
-    "oi_ratio": 30.05,
-    "vol_ratio": 78.96,
+    "date": "20261123",
+    "oi_ratio": 30.9,
+    "vol_ratio": 54.21,
     "bias": "bullish",
     "note": "偏樂觀（買權未平倉相對偏多）"
   },
   "institutional": {
     "status": "ok",
-    "date": "20261120",
-    "call_net": -7171.0,
-    "put_net": 1013.0,
+    "date": "20261123",
+    "call_net": -4637.0,
+    "put_net": 506.0,
     "bias": "bearish",
     "note": "三大法人籌碼偏空方"
   },
